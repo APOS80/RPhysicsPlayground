@@ -24,7 +24,7 @@
 
 (define (bounce v n) ;v velosity vector, n normal vector
   (let* ([Vfl (vectorAdd (dotProduct n (dotProduct (dotProduct v n) '(-2 -2))) v)] ;Frictionless
-         [Vf  (dotProduct Vfl '(0.6 0.6))]) ;With friction
+         [Vf  (dotProduct Vfl '(0.8 0.8))]) ;With friction
     Vf))
 
 ;(setVectorLength vector1 length1)
@@ -32,14 +32,17 @@
 (define (attraction body otherBody action) ;Creates a vector to adjust planet heading depending on all other bodies 
   (let* ([dx (- (body-px otherBody) (body-px body))]
          [dy (- (body-py otherBody) (body-py body))]
-         [distance (sqrt (+ (expt dx 2) (expt dy 2)))]) ;Distance between bodys
-    (if (> (+ (body-radius body) (body-radius otherBody)) distance)
+         [distance (sqrt (+ (expt dx 2) (expt dy 2)))]
+         [rsum (+ (body-radius body) (body-radius otherBody))]) ;Distance between bodys
+    (if (>  rsum distance)
         (case action
           [("p") (printf "Hitt! ~a ~a\n" (body-id body) (body-id otherBody))]
           [("b") (let* ([b (bounce (list(body-vx body)(body-vy body))
                                    (normalizeVector (list dx dy)))];Calculate bounce angle and speed
-                        [resetV (setVectorLength (list (* dx -1) (* dy -1))
-                                                 (+ (body-radius body) (body-radius otherBody)))]
+                        [resetV (setVectorLength (list (* dx -1) (* dy -1)) (+ (* (- rsum distance)
+                                                                                  (/ (body-mass otherBody)
+                                                                                     (+ (body-mass body)(body-mass otherBody))))
+                                                                               distance))]
                         [resetTo (list (+ (list-ref resetV 0) (body-px otherBody))
                                        (+ (list-ref resetV 1) (body-py otherBody)))]
                         )
@@ -52,7 +55,7 @@
         (directionOfForce dx dy
                         (force G (body-mass body) (body-mass otherBody) distance))))
 
-(define timestep (* 1 3600)) ;Half a day
+(define timestep (* 6 3600)) ;Half a day
 
 (define (totalAttraction body bodies fxy action) ;Creates a list of vectors, a vector for every body
   (if (equal? bodies '())
@@ -76,13 +79,13 @@
 
 ;A list of bodies, size of planets is not real... you woldent se the planets. 
 (define testCollPlanets (list
-                         ;(body "Sun" 0 0 0 0 (* 1.98892 (expt 10 30)) (* 0.15 AU) "yellow")
-                         ;(body "Mercury" (* -0.387098 AU) 0 0 (* -47.362 1000) (* 3.3011 (expt 10 23)) (* 0.01 AU) "red")
-                         ;(body "Venus" (* 0.723 AU) 0 0 (* 35.02 1000) (* 4.8685 (expt 10 24)) (* 0.02 AU) "brown")
-                         ;(body "Earth" (* -1 AU) 0 0 (* -29.783 1000) (* 5.9742 (expt 10 24)) (* 0.02 AU) "green")
-                         ;(body "Mars" (* -1.5236 AU) 0 0 (* -24.077 1000) (* 6.4174 (expt 10 23)) (* 0.015 AU) "orange")
-                         (body "Havoc" (* -0.5 AU) 0 (* 40 1000) 0 (* 0.5 (expt 10 30)) (* 0.05 AU) "green")
-                         (body "Midget" (* 0.5 AU) 0 (* -40 1000) 0 (* 5.9742 (expt 10 24)) (* 0.02 AU) "blue")
+                         (body "Sun" 0 0 0 0 (* 1.98892 (expt 10 30)) (* 0.15 AU) "yellow")
+                         (body "Mercury" (* -0.387098 AU) 0 0 (* -47.362 1000) (* 3.3011 (expt 10 23)) (* 0.01 AU) "red")
+                         (body "Venus" (* 0.723 AU) 0 0 (* 35.02 1000) (* 4.8685 (expt 10 24)) (* 0.02 AU) "brown")
+                         (body "Earth" (* -1 AU) 0 0 (* -29.783 1000) (* 5.9742 (expt 10 24)) (* 0.02 AU) "green")
+                         (body "Mars" (* -1.5236 AU) 0 0 (* -24.077 1000) (* 6.4174 (expt 10 23)) (* 0.015 AU) "orange")
+                         (body "Havoc" 0 (* -0.5 AU) (* 30 1000) 0 (* 0.5 (expt 10 30)) (* 0.05 AU) "green")
+                         ;(body "Midget" (* 0.5 AU) 0 (* -30 1000) 0 (* 5.9742 (expt 10 24)) (* 0.02 AU) "blue")
                          ))
 
 
